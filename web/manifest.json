@@ -1,11 +1,11 @@
 {
-    "name": "currency_plus",
-    "short_name": "currency_plus",
+    "name": "Currency Plus",
+    "short_name": "Currency+",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#1565C0",
+    "theme_color": "#1565C0",
+    "description": "Live currency converter with 30+ currencies and real-time exchange rates",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

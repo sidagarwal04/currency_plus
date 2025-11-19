@@ -53,3 +53,6 @@ lib/config/api_config.dart
 *.apk
 *.aab
 *.ipa
+
+# Local Netlify folder
+.netlify
