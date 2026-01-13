@@ -19,9 +19,8 @@ A modern, feature-rich currency converter app built with Flutter.
 - 🌙 **Dark Mode** - Full dark mode support
 - 🎨 **Material Design 3** - Clean, modern interface
 
-## 📱 Screenshots
-
-[Add your screenshots here]
+## 📱 App Screen
+![WhatsApp Image 2026-01-13 at 11 59 06 AM](https://github.com/user-attachments/assets/258a90d2-2b2a-4a85-8128-7a360edcde3f)
 
 ## 🚀 Quick Start
 
