@@ -1,36 +1,32 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import '../models/exchange_rate_response.dart';
 import '../config/api_config.dart';
 
 /// API-based currency conversion service
-/// Phase 2: Uses real-time exchange rates from ExchangeRate-API
+/// Phase 2: Uses real-time exchange rates via Netlify Serverless Proxy (on Web)
+/// or ExchangeRate-API directly (on Mobile / local dev fallback)
 class ApiCurrencyService {
-  // Using ExchangeRate-API free tier
-  // Base URL for the API
+  // Base URL for the direct API
   static String get _baseUrl => ApiConfig.exchangeRateApiUrl;
-  
-  // API Key - Free tier (1,500 requests/month)
-  // Supports --dart-define=API_KEY=... (for Netlify/CI) or ApiConfig.exchangeRateApiKey
-  static String get _apiKey {
-    const envKey = String.fromEnvironment('API_KEY');
-    if (envKey.isNotEmpty) return envKey;
-    return ApiConfig.exchangeRateApiKey;
-  }
 
-  /// Check if a dedicated API key is configured
+  // Optional local API Key (never needed on Web when using the Netlify /api/rates proxy)
+  static String get _apiKey => ApiConfig.exchangeRateApiKey;
+
+  /// Check if a dedicated local API key is configured
   bool get hasDedicatedApiKey =>
       !ApiConfig.useDemoMode &&
       _apiKey.isNotEmpty &&
       _apiKey != 'YOUR_API_KEY_HERE';
 
-  /// Live API is available via either dedicated key or ExchangeRate-API's open v6 endpoint
+  /// Live API is available unless demo mode is explicitly enabled
   bool get isApiConfigured => !ApiConfig.useDemoMode;
 
   // Cache for exchange rates
   ExchangeRateResponse? _cachedRates;
   DateTime? _lastFetchTime;
-  
+
   // Cache duration (1 hour)
   static const Duration _cacheDuration = Duration(hours: 1);
 
@@ -45,12 +41,25 @@ class ApiCurrencyService {
     }
 
     // Return cached data if valid and not forcing refresh
-    if (!forceRefresh && _isCacheValid() && _cachedRates?.baseCode == baseCurrency) {
+    if (!forceRefresh &&
+        _isCacheValid() &&
+        _cachedRates?.baseCode == baseCurrency) {
       return _cachedRates;
     }
 
     try {
-      // Use dedicated API key if set, otherwise use ExchangeRate-API's official free open v6 endpoint
+      // 1. On Web, try the server-side Netlify Function proxy (/api/rates?base=...)
+      //    so the API key remains 100% hidden on the server.
+      if (kIsWeb) {
+        final proxyResult = await _tryFetchFromServerlessProxy(baseCurrency);
+        if (proxyResult != null) {
+          _cachedRates = proxyResult;
+          _lastFetchTime = DateTime.now();
+          return _cachedRates;
+        }
+      }
+
+      // 2. Direct fallback (for Mobile builds or local `flutter run` dev server)
       final Uri url = hasDedicatedApiKey
           ? Uri.parse('$_baseUrl/$_apiKey/latest/$baseCurrency')
           : Uri.parse('https://open.er-api.com/v6/latest/$baseCurrency');
@@ -75,6 +84,34 @@ class ApiCurrencyService {
     }
   }
 
+  /// Calls the Netlify Serverless Function `/api/rates?base=...`
+  /// Returns null if running on a local dev server without Netlify Functions.
+  Future<ExchangeRateResponse?> _tryFetchFromServerlessProxy(
+    String baseCurrency,
+  ) async {
+    try {
+      final proxyUri = Uri.base.resolve('/api/rates?base=$baseCurrency');
+      final response = await http
+          .get(proxyUri, headers: const {'Accept': 'application/json'})
+          .timeout(const Duration(seconds: 6));
+
+      if (response.statusCode == 200) {
+        final contentType = response.headers['content-type'] ?? '';
+        final body = response.body.trimLeft();
+        // Ensure we got JSON from the function and not an HTML SPA fallback
+        if (contentType.contains('json') || body.startsWith('{')) {
+          final data = json.decode(body) as Map<String, dynamic>;
+          if (data['result'] == 'success') {
+            return ExchangeRateResponse.fromJson(data);
+          }
+        }
+      }
+    } catch (_) {
+      // Ignore and allow caller to fall back
+    }
+    return null;
+  }
+
   /// Convert amount from one currency to another using API rates
   Future<double?> convert({
     required double amount,
@@ -83,7 +120,7 @@ class ApiCurrencyService {
   }) async {
     try {
       final rates = await fetchExchangeRates(baseCurrency: fromCurrency);
-      
+
       if (rates == null || !rates.isSuccess) {
         return null;
       }
@@ -106,7 +143,7 @@ class ApiCurrencyService {
   }) async {
     try {
       final rates = await fetchExchangeRates(baseCurrency: fromCurrency);
-      
+
       if (rates == null || !rates.isSuccess) {
         return null;
       }

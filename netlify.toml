@@ -1,10 +1,18 @@
 [build]
   command = "if [ ! -d \"$HOME/flutter\" ]; then git clone https://github.com/flutter/flutter.git -b stable --depth 1 \"$HOME/flutter\"; fi && export PATH=\"$PATH:$HOME/flutter/bin\" && flutter config --enable-web && cp -n lib/config/api_config.example.dart lib/config/api_config.dart && flutter pub get && flutter build web --release"
   publish = "build/web"
+  functions = "netlify/functions"
 
 [build.environment]
   FLUTTER_VERSION = "stable"
 
+# Route /api/rates to the serverless proxy function so the API key stays server-side
+[[redirects]]
+  from = "/api/rates"
+  to = "/.netlify/functions/rates"
+  status = 200
+
+# SPA fallback for Flutter Web routes
 [[redirects]]
   from = "/*"
   to = "/index.html"
