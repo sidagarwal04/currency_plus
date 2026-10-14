@@ -1,5 +1,5 @@
 [build]
-  command = "flutter build web"
+  command = "cp -n lib/config/api_config.example.dart lib/config/api_config.dart && flutter build web --dart-define=API_KEY=${API_KEY}"
   publish = "build/web"
 
 [build.environment]
