@@ -1,30 +1,50 @@
 # Currency Plus - Setup Guide
 
 ## 📋 Table of Contents
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
+- [Prerequisites (Install Flutter First)](#prerequisites-install-flutter-first)
+- [Project Installation](#project-installation)
 - [API Configuration](#api-configuration)
-- [Building & Running](#building--running)
+- [Running & Building (Web & Mobile)](#running--building-web--mobile)
 - [GitHub Setup](#github-setup)
+- [Troubleshooting](#troubleshooting)
 
 ---
 
-## Prerequisites
+## Prerequisites (Install Flutter First)
+
+> **Important:** You must install the **Flutter SDK** before running `flutter pub get` or any other project commands. If you see `zsh: command not found: flutter`, install Flutter using the steps below.
 
 ### Required Software
-- **Flutter SDK** 3.38.0 or higher
-- **Dart SDK** 3.10.0 or higher
-- **Android Studio** (for Android builds) or **Xcode** (for iOS builds)
+- **Flutter SDK** 3.38.0 or higher (includes **Dart SDK** 3.10.0+)
+- **Web Browser** (Chrome, Safari, Edge, Firefox) for running the Web version
+- **Android Studio** (for Android APK builds) or **Xcode** (for iOS/macOS builds)
 
-### Check Your Installation
+### 1. Install Flutter
+
+#### macOS (Recommended: via Homebrew)
+```bash
+brew install --cask flutter
+```
+After installing, open a new terminal tab (or run `hash -r`) so your shell detects the `flutter` command.
+
+#### Manual Installation (macOS / Linux / Windows)
+1. Download the Flutter SDK from [docs.flutter.dev/get-started/install](https://docs.flutter.dev/get-started/install)
+2. Extract it and add `flutter/bin` to your shell `PATH` (e.g., in `~/.zshrc`):
+   ```bash
+   export PATH="$PATH:/path/to/flutter/bin"
+   source ~/.zshrc
+   ```
+
+### 2. Verify Your Flutter Installation
 ```bash
 flutter --version
 dart --version
+flutter doctor
 ```
 
 ---
 
-## Installation
+## Project Installation
 
 ### 1. Clone the Repository
 ```bash
@@ -32,39 +52,37 @@ git clone https://github.com/YOUR_USERNAME/currency_plus.git
 cd currency_plus
 ```
 
-### 2. Install Dependencies
+### 2. Create the API Config File
+`lib/config/api_config.dart` is gitignored so API keys are never committed. Copy the template file before building or running:
+
+```bash
+cp -n lib/config/api_config.example.dart lib/config/api_config.dart
+```
+
+### 3. Install Dependencies
 ```bash
 flutter pub get
 ```
-
-### 3. Verify Installation
-```bash
-flutter doctor
-```
-Fix any issues reported by `flutter doctor`.
 
 ---
 
 ## API Configuration
 
-### Get Your API Key
+### Live Rates Work Out of the Box
+By default (`useDemoMode = false`), the app fetches **live exchange rates** automatically:
+- If no custom API key is entered, it uses ExchangeRate-API's official free open v6 endpoint (`https://open.er-api.com/v6/latest/`).
+- If you configure your own API key, it uses your dedicated v6 endpoint (`https://v6.exchangerate-api.com/v6/YOUR_KEY/latest/`).
+- If you are offline, it automatically falls back to built-in offline reference rates for all 30+ currencies.
 
-1. Visit [ExchangeRate-API](https://www.exchangerate-api.com/)
-2. Sign up for a free account
-3. Get your API key from the dashboard (1,500 requests/month free)
+### Optional: Configure Your Own Dedicated API Key
 
-### Configure the App
+1. Visit [ExchangeRate-API](https://www.exchangerate-api.com/) and sign up for a free account (1,500 requests/month)
+2. Edit `lib/config/api_config.dart`:
 
-```bash
-# Copy the example config file
-cp lib/config/api_config.example.dart lib/config/api_config.dart
-```
-
-Edit `lib/config/api_config.dart`:
 ```dart
 class ApiConfig {
-  static const String exchangeRateApiKey = 'your_api_key_here'; // Add your key
-  static const bool useDemoMode = false; // Set to false for live rates
+  static const String exchangeRateApiKey = 'your_api_key_here'; // Optional dedicated key
+  static const bool useDemoMode = false; // Keep false for live rates
   
   static const String exchangeRateApiUrl = 'https://v6.exchangerate-api.com/v6';
   static const Duration cacheValidDuration = Duration(hours: 1);
@@ -72,24 +90,44 @@ class ApiConfig {
 }
 ```
 
-**Note:** The app works offline without an API key, but you'll get static exchange rates.
+You can also pass the API key at build/run time via environment defines (useful for Netlify/CI):
+```bash
+flutter build web --dart-define=API_KEY=your_api_key_here
+```
 
 ---
 
-## Building & Running
+## Running & Building (Web & Mobile)
 
-### Run in Development Mode
+### Run on Web (Development)
 
 ```bash
-# Run on connected device/emulator
-flutter run
+# Option A: Launch directly in Chrome
+flutter run -d chrome
 
-# Run on specific device
-flutter devices  # List available devices
+# Option B: Start a local web server (open http://localhost:8080 in any browser)
+flutter run -d web-server --web-port 8080
+```
+
+### Build Production Web App
+
+```bash
+flutter build web
+```
+**Output:** `build/web/` (ready to deploy to Netlify—see [NETLIFY_DEPLOY.md](NETLIFY_DEPLOY.md)).
+
+### Run on Mobile / Desktop
+
+```bash
+# List available devices / emulators
+flutter devices
+
+# Run on connected device or emulator
+flutter run
 flutter run -d <device-id>
 ```
 
-### Build Release APK
+### Build Release Android APK
 
 Use the provided build script:
 ```bash
@@ -103,14 +141,11 @@ flutter build apk --release
 
 **Output:** `build/app/outputs/flutter-apk/currency-convert.apk`
 
-### Install on Device
+### Install APK on Android Device
 
 ```bash
 # Via ADB
 adb install -r build/app/outputs/flutter-apk/currency-convert.apk
-
-# Or manually
-# Transfer the APK to your device and install
 ```
 
 ---
@@ -130,31 +165,11 @@ adb install -r build/app/outputs/flutter-apk/currency-convert.apk
    # Should output: lib/config/api_config.dart
    ```
 
-3. **Add Files**
+3. **Add & Commit Files**
    ```bash
    git add .
    git status  # Review files to be committed
-   ```
-
-4. **Create Initial Commit**
-   ```bash
    git commit -m "Initial commit: Currency Plus app"
-   ```
-
-### Push to GitHub
-
-1. **Create Repository on GitHub**
-   - Go to https://github.com/new
-   - Name: `currency_plus`
-   - Choose Public or Private
-   - **Don't** initialize with README
-   - Click "Create repository"
-
-2. **Connect and Push**
-   ```bash
-   git remote add origin https://github.com/YOUR_USERNAME/currency_plus.git
-   git branch -M main
-   git push -u origin main
    ```
 
 ### Security Checklist
@@ -164,20 +179,6 @@ adb install -r build/app/outputs/flutter-apk/currency-convert.apk
 - [ ] Your actual API key is NOT committed
 - [ ] APK files are NOT committed
 
-### If You Accidentally Expose Your Key
-
-1. **Immediately revoke** the API key at exchangerate-api.com
-2. Generate a new key
-3. Remove from Git history:
-   ```bash
-   git filter-branch --force --index-filter \
-   "git rm --cached --ignore-unmatch lib/config/api_config.dart" \
-   --prune-empty --tag-name-filter cat -- --all
-   
-   git push origin --force --all
-   ```
-4. Update your local file with the new key
-
 ---
 
 ## App Icon Setup (Optional)
@@ -185,12 +186,10 @@ adb install -r build/app/outputs/flutter-apk/currency-convert.apk
 ### Generate Custom App Icon
 
 1. Place your icon image at `assets/icon.png` (512x512px recommended)
-
 2. Run the icon generator:
    ```bash
    dart run flutter_launcher_icons
    ```
-
 3. Rebuild the app:
    ```bash
    ./build_apk.sh
@@ -200,28 +199,24 @@ adb install -r build/app/outputs/flutter-apk/currency-convert.apk
 
 ## Troubleshooting
 
-### API Key Not Working
-- Verify the key is correct in `lib/config/api_config.dart`
-- Check `useDemoMode` is set to `false`
-- Ensure you have internet connection
-- Check your API quota hasn't been exceeded
+### `zsh: command not found: flutter`
+- Flutter is not installed or not in your `PATH`.
+- Install it via Homebrew (`brew install --cask flutter`) and open a new terminal window, or verify `/opt/homebrew/bin` is in your `PATH`.
+
+### Error: `Target of URI doesn't exist: '../config/api_config.dart'`
+- Run `cp -n lib/config/api_config.example.dart lib/config/api_config.dart` to create your local configuration file.
+
+### Showing "Offline Reference Rates" Instead of "Live Exchange Rates"
+- Check `lib/config/api_config.dart` and ensure `useDemoMode` is set to `false`.
+- Ensure your device/browser has an active internet connection.
 
 ### Build Errors
 ```bash
 # Clean and rebuild
 flutter clean
 flutter pub get
-./build_apk.sh
+flutter build web   # or ./build_apk.sh
 ```
-
-### App Crashes on Startup
-- Check `flutter run` output for errors
-- Verify all dependencies are installed: `flutter pub get`
-- Try clearing app data on device
-
-### State Not Persisting
-- Ensure `shared_preferences` is properly installed
-- Check device storage permissions
 
 ---
 
@@ -230,28 +225,23 @@ flutter pub get
 ### Useful Commands
 
 ```bash
-# Development
-flutter run                    # Run in debug mode
-flutter run --release          # Run in release mode
-flutter run -d chrome          # Run on web
+# Web Development & Build
+flutter run -d chrome                        # Run in Chrome
+flutter run -d web-server --web-port 8080    # Run local web server at localhost:8080
+flutter build web                            # Build production web bundle
 
-# Building
-./build_apk.sh                 # Build APK (recommended)
-flutter build apk --release    # Build APK manually
-flutter build appbundle        # Build App Bundle for Play Store
+# Mobile Development & Build
+flutter run                                  # Run in debug mode
+flutter run --release                        # Run in release mode
+./build_apk.sh                               # Build Android APK (recommended)
+flutter build apk --release                  # Build Android APK manually
+flutter build appbundle                      # Build App Bundle for Play Store
 
 # Maintenance
-flutter clean                  # Clean build cache
-flutter pub get                # Install dependencies
-flutter pub upgrade            # Upgrade dependencies
-flutter doctor                 # Check installation
-flutter devices                # List connected devices
-
-# Git
-git status                     # Check what will be committed
-git add .                      # Stage all changes
-git commit -m "message"        # Commit changes
-git push                       # Push to GitHub
+flutter clean                                # Clean build cache
+flutter pub get                              # Install dependencies
+flutter doctor                               # Check Flutter installation
+flutter devices                              # List connected devices
 ```
 
 ### Project Structure
@@ -259,14 +249,25 @@ git push                       # Push to GitHub
 ```
 lib/
 ├── config/
-│   ├── api_config.dart          # Your API key (gitignored)
-│   └── api_config.example.dart  # Template
+│   ├── api_config.dart                # Local API config (gitignored)
+│   └── api_config.example.dart        # Config template
 ├── models/
-│   └── currency.dart            # Currency data (30+ currencies)
+│   ├── conversion_history.dart        # Conversion history model
+│   ├── currency.dart                  # Currency data (30+ currencies)
+│   ├── exchange_rate_response.dart    # API response model
+│   └── user_preferences.dart          # Theme & user settings model
 ├── screens/
-│   └── multi_currency_screen.dart  # Main UI
+│   ├── multi_currency_screen.dart     # Main responsive multi-currency UI
+│   ├── currency_converter_screen.dart # Single-pair converter & favorites
+│   └── history_screen.dart            # Conversion history & CSV export
 └── services/
-    └── hybrid_currency_service.dart # API + offline support
+    ├── api_currency_service.dart      # Live ExchangeRate-API service
+    ├── currency_service.dart          # Offline fallback rates (30+ currencies)
+    ├── hybrid_currency_service.dart   # Automatic live + offline fallback service
+    ├── favorites_service.dart         # Favorite currencies persistence
+    ├── history_service.dart           # Conversion history persistence
+    ├── preferences_service.dart       # Theme & user preferences
+    └── storage_service.dart           # SharedPreferences wrapper
 ```
 
 ---
