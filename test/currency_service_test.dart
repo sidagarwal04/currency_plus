@@ -73,7 +73,7 @@ void main() {
       expect(currencies, isNotEmpty);
       expect(currencies, contains('USD'));
       expect(currencies, contains('EUR'));
-      expect(currencies.length, 10);
+      expect(currencies.length, 30);
     });
 
     test('Convert zero amount', () {

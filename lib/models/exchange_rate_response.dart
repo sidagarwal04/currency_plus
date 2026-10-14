@@ -19,11 +19,14 @@ class ExchangeRateResponse {
   });
 
   factory ExchangeRateResponse.fromJson(Map<String, dynamic> json) {
+    final ratesMap =
+        (json['conversion_rates'] ?? json['rates']) as Map<String, dynamic>;
     return ExchangeRateResponse(
       result: json['result'] as String,
       baseCode: json['base_code'] as String,
-      conversionRates: (json['conversion_rates'] as Map<String, dynamic>)
-          .map((key, value) => MapEntry(key, (value as num).toDouble())),
+      conversionRates: ratesMap.map(
+        (key, value) => MapEntry(key, (value as num).toDouble()),
+      ),
       timeLastUpdateUnix: json['time_last_update_unix'] as int,
       timeLastUpdateUtc: json['time_last_update_utc'] as String,
       timeNextUpdateUnix: json['time_next_update_unix'] as int,

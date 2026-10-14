@@ -1,5 +1,6 @@
 import 'currency_service.dart';
 import 'api_currency_service.dart';
+import '../config/api_config.dart';
 
 /// Hybrid service that uses API when available, falls back to offline rates
 /// Provides best of both worlds: real-time rates with offline functionality
@@ -10,6 +11,9 @@ class HybridCurrencyService {
   bool _useApi = true;
   bool _isLoading = false;
   String? _lastError;
+
+  /// Whether live API is both enabled and configured with a non-demo API key
+  bool get isLiveApiActive => _useApi && _apiService.isApiConfigured;
 
   /// Convert amount using API or fallback to offline
   Future<double?> convert({

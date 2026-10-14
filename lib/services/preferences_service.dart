@@ -29,13 +29,19 @@ class PreferencesService extends ChangeNotifier {
 
   /// Toggle dark mode
   Future<bool> toggleDarkMode() async {
-    _preferences = _preferences.copyWith(isDarkMode: !_preferences.isDarkMode);
+    _preferences = _preferences.copyWith(
+      isDarkMode: !_preferences.isDarkMode,
+      useSystemTheme: false,
+    );
     return await _savePreferences();
   }
 
   /// Set dark mode
   Future<bool> setDarkMode(bool value) async {
-    _preferences = _preferences.copyWith(isDarkMode: value);
+    _preferences = _preferences.copyWith(
+      isDarkMode: value,
+      useSystemTheme: false,
+    );
     return await _savePreferences();
   }
 

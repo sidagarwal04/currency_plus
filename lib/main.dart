@@ -8,20 +8,20 @@ import 'services/favorites_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize services
   final storageService = StorageService();
   await storageService.init();
-  
+
   final preferencesService = PreferencesService();
   await preferencesService.init();
-  
+
   final historyService = HistoryService();
   await historyService.init();
-  
+
   final favoritesService = FavoritesService();
   await favoritesService.init();
-  
+
   runApp(
     MultiProvider(
       providers: [
@@ -41,7 +41,7 @@ class CurrencyPlusApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final preferencesService = context.watch<PreferencesService>();
-    
+
     return MaterialApp(
       title: 'Currency Plus',
       debugShowCheckedModeBanner: false,
@@ -51,14 +51,22 @@ class CurrencyPlusApp extends StatelessWidget {
       home: const MultiCurrencyScreen(),
     );
   }
-  
+
   ThemeData _buildLightTheme() {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: const Color(0xFF0D9488),
+      brightness: Brightness.light,
+    );
     return ThemeData(
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: Colors.teal,
-        brightness: Brightness.light,
-      ),
+      colorScheme: colorScheme,
       useMaterial3: true,
+      scaffoldBackgroundColor: const Color(0xFFF4F7F9),
+      cardTheme: CardThemeData(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+      ),
       inputDecorationTheme: InputDecorationTheme(
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -67,14 +75,22 @@ class CurrencyPlusApp extends StatelessWidget {
       ),
     );
   }
-  
+
   ThemeData _buildDarkTheme() {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: const Color(0xFF14B8A6),
+      brightness: Brightness.dark,
+    );
     return ThemeData(
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: Colors.teal,
-        brightness: Brightness.dark,
-      ),
+      colorScheme: colorScheme,
       useMaterial3: true,
+      scaffoldBackgroundColor: const Color(0xFF0F172A),
+      cardTheme: CardThemeData(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+      ),
       inputDecorationTheme: InputDecorationTheme(
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

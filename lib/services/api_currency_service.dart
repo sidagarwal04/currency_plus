@@ -11,9 +11,22 @@ class ApiCurrencyService {
   static String get _baseUrl => ApiConfig.exchangeRateApiUrl;
   
   // API Key - Free tier (1,500 requests/month)
-  // For production, store this securely (e.g., environment variables)
-  static String get _apiKey => ApiConfig.exchangeRateApiKey;
-  
+  // Supports --dart-define=API_KEY=... (for Netlify/CI) or ApiConfig.exchangeRateApiKey
+  static String get _apiKey {
+    const envKey = String.fromEnvironment('API_KEY');
+    if (envKey.isNotEmpty) return envKey;
+    return ApiConfig.exchangeRateApiKey;
+  }
+
+  /// Check if a dedicated API key is configured
+  bool get hasDedicatedApiKey =>
+      !ApiConfig.useDemoMode &&
+      _apiKey.isNotEmpty &&
+      _apiKey != 'YOUR_API_KEY_HERE';
+
+  /// Live API is available via either dedicated key or ExchangeRate-API's open v6 endpoint
+  bool get isApiConfigured => !ApiConfig.useDemoMode;
+
   // Cache for exchange rates
   ExchangeRateResponse? _cachedRates;
   DateTime? _lastFetchTime;
@@ -27,13 +40,20 @@ class ApiCurrencyService {
     String baseCurrency = 'USD',
     bool forceRefresh = false,
   }) async {
+    if (ApiConfig.useDemoMode) {
+      return null;
+    }
+
     // Return cached data if valid and not forcing refresh
     if (!forceRefresh && _isCacheValid() && _cachedRates?.baseCode == baseCurrency) {
       return _cachedRates;
     }
 
     try {
-      final url = Uri.parse('$_baseUrl/$_apiKey/latest/$baseCurrency');
+      // Use dedicated API key if set, otherwise use ExchangeRate-API's official free open v6 endpoint
+      final Uri url = hasDedicatedApiKey
+          ? Uri.parse('$_baseUrl/$_apiKey/latest/$baseCurrency')
+          : Uri.parse('https://open.er-api.com/v6/latest/$baseCurrency');
       final response = await http.get(url).timeout(
         const Duration(seconds: 10),
       );

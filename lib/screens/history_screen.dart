@@ -74,20 +74,29 @@ class _HistoryScreenState extends State<HistoryScreen> {
             return _buildEmptyState();
           }
           
-          return Column(
-            children: [
-              _buildStatistics(history),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: history.length,
-                  padding: const EdgeInsets.all(16),
-                  itemBuilder: (context, index) {
-                    final conversion = history[index];
-                    return _buildHistoryCard(context, conversion, historyService);
-                  },
-                ),
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 720),
+              child: Column(
+                children: [
+                  _buildStatistics(history),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: history.length,
+                      padding: const EdgeInsets.all(16),
+                      itemBuilder: (context, index) {
+                        final conversion = history[index];
+                        return _buildHistoryCard(
+                          context,
+                          conversion,
+                          historyService,
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           );
         },
       ),

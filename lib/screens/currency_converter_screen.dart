@@ -170,13 +170,15 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
           // Theme toggle button
           Consumer<PreferencesService>(
             builder: (context, prefs, _) {
+              final effectiveDark =
+                  Theme.of(context).brightness == Brightness.dark;
               return IconButton(
                 icon: Icon(
-                  prefs.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                  effectiveDark ? Icons.light_mode : Icons.dark_mode,
                 ),
-                tooltip: prefs.isDarkMode ? 'Light Mode' : 'Dark Mode',
+                tooltip: effectiveDark ? 'Light Mode' : 'Dark Mode',
                 onPressed: () {
-                  prefs.toggleDarkMode();
+                  prefs.setDarkMode(!effectiveDark);
                 },
               );
             },
@@ -185,8 +187,11 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
         ],
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 680),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -198,10 +203,14 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
-                      Icon(
-                        Icons.currency_exchange,
-                        size: 48,
-                        color: Theme.of(context).colorScheme.primary,
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.asset(
+                          'assets/icon.png',
+                          width: 56,
+                          height: 56,
+                          fit: BoxFit.contain,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -504,6 +513,8 @@ class _CurrencyConverterScreenState extends State<CurrencyConverterScreen> {
           ),
         ),
       ),
+      ),
+    ),
     );
   }
 
