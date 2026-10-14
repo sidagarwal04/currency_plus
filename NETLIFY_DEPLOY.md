@@ -29,8 +29,10 @@ Go to: https://app.netlify.com/
 4. Select repository: **`sidagarwal04/currency_plus`**
 
 ### Step 3: Configure Build Settings
+Netlify automatically reads `netlify.toml` from the repository root, which installs Flutter on the Netlify build container, generates `lib/config/api_config.dart` from the template, and runs `flutter build web --release`.
+
 ```
-Build command: flutter build web
+Build command: (configured automatically via netlify.toml)
 Publish directory: build/web
 ```
 
@@ -66,11 +68,11 @@ Create `netlify.toml` in project root:
 
 ```toml
 [build]
-  command = "flutter build web"
+  command = "if [ ! -d \"$HOME/flutter\" ]; then git clone https://github.com/flutter/flutter.git -b stable --depth 1 \"$HOME/flutter\"; fi && export PATH=\"$PATH:$HOME/flutter/bin\" && flutter config --enable-web && cp -n lib/config/api_config.example.dart lib/config/api_config.dart && flutter pub get && flutter build web --release"
   publish = "build/web"
 
 [build.environment]
-  FLUTTER_VERSION = "3.38.0"
+  FLUTTER_VERSION = "stable"
 
 [[redirects]]
   from = "/*"

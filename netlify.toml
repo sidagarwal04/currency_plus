@@ -1,9 +1,9 @@
 [build]
-  command = "cp -n lib/config/api_config.example.dart lib/config/api_config.dart && flutter build web --dart-define=API_KEY=${API_KEY}"
+  command = "if [ ! -d \"$HOME/flutter\" ]; then git clone https://github.com/flutter/flutter.git -b stable --depth 1 \"$HOME/flutter\"; fi && export PATH=\"$PATH:$HOME/flutter/bin\" && flutter config --enable-web && cp -n lib/config/api_config.example.dart lib/config/api_config.dart && flutter pub get && flutter build web --release"
   publish = "build/web"
 
 [build.environment]
-  FLUTTER_VERSION = "3.38.0"
+  FLUTTER_VERSION = "stable"
 
 [[redirects]]
   from = "/*"
